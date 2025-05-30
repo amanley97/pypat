@@ -1,4 +1,3 @@
-import os
 import subprocess
 import argparse
 from pathlib import Path
@@ -27,12 +26,18 @@ def run_mcpat(currentwd: Path, target: Path, mcpat_input: Path):
     except subprocess.CalledProcessError as e:
         print(f"Error running McPAT: {e}")
 
-def main():
-    parser = argparse.ArgumentParser(description="Run gem5 to McPAT conversion and analysis.")
-    parser.add_argument("target_dir", help="Path to the gem5 output directory. (Must contain stats.h5, config.json)")
-    args = parser.parse_args()
+def run(target_dir: str):
+    """
+    Runs the gem5 to mcpat flow.
 
-    d = gen_dirs(args.target_dir)
+    [gem5_stats, gem5_config] -> mcpat-input.xml -> mcpat-results.txt
+
+    Note the input file must contain the following:
+        target_dir
+        ├── config.json
+        └── stats.h5
+    """
+    d = gen_dirs(target_dir)
 
     print(f"Running McPAT conversion and analysis for: {d["base_path"]}")
 
@@ -47,6 +52,3 @@ def main():
         target=d["base_path"],
         mcpat_input=d["mcpat_file"]
     )
-
-if __name__ == "__main__":
-    main()

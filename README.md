@@ -19,5 +19,5 @@ make
 
 ## Usage
 ```bash
-python pypat.py <stats.h5> <config.json>
+python pypat <stats.h5> <config.json>
 ```
