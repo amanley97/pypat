@@ -1,22 +1,22 @@
 import subprocess
 from pathlib import Path
-from conversion.gem5_to_mcpat import run_conversion
+from .gem5_to_mcpat import run_conversion
 
-def gen_dirs(target_dir: str):
+def gen_dirs(target_dir: Path):
     return {
         "current_dir": Path(__file__).resolve().parent,
         "base_path": Path(target_dir),
         "stats_file": Path(target_dir)/"stats.h5",
         "config_file": Path(target_dir)/"config.json",
-        "mcpat_file": Path(target_dir)/"mcpat_conv.xml"
+        "mcpat_file": Path(target_dir)/"conv.xml"
     }
     
 
 def run_mcpat(currentwd: Path, target: Path, mcpat_input: Path):
-    mcpat_executable = currentwd / "mcpat"
+    mcpat_executable = currentwd.parent / "mcpat"
     mcpat_output = target / "mcpat_results.txt"
 
-    command = [mcpat_executable, "-infile", mcpat_input, "-print_level 1"]
+    command = [mcpat_executable, "-infile", mcpat_input.resolve(), "-print_level 1"]
 
     try:
         with open(mcpat_output, "w") as out_file:
@@ -38,7 +38,7 @@ def run(target_dir: str):
     """
     d = gen_dirs(target_dir)
 
-    print(f"Running McPAT conversion and analysis for: {d["base_path"]}")
+    print(f"Running McPAT conversion and analysis for: {d['base_path']}")
 
     run_conversion(
         stats_file=d["stats_file"],

@@ -71,7 +71,7 @@ O3CPU_TEMPLATE = """<?xml version='1.0' encoding='utf-8'?>
       <param name="store_buffer_size" value="config.system.cpu.SQEntries" />
       <param name="load_buffer_size" value="config.system.cpu.LQEntries" />
       <param name="memory_ports" value="2" />
-      <param name="RAS_size" value="config.system.cpu.branchPred.ras.numEntries" />
+      <param name="RAS_size" value="config.system.cpu.branchPred.ras.numEntries + config.system.cpu.branchPred.RASSize" />
       <stat name="total_instructions" value="stats.system.cpu.statIssuedInstType_0::total + stats.system.cpu1.statIssuedInstType_0::total" />
       <stat name="int_instructions" value="stats.system.cpu.statIssuedInstType_0::No_OpClass + stats.system.cpu1.statIssuedInstType_0::No_OpClass + stats.system.cpu.statIssuedInstType_0::IntAlu + stats.system.cpu1.statIssuedInstType_0::IntAlu + stats.system.cpu.statIssuedInstType_0::IntMult + stats.system.cpu1.statIssuedInstType_0::IntMult + stats.system.cpu.statIssuedInstType_0::IntDiv + stats.system.cpu1.statIssuedInstType_0::IntDiv + stats.system.cpu.statIssuedInstType_0::IprAccess + stats.system.cpu1.statIssuedInstType_0::IprAccess" />
       <stat name="fp_instructions" value="stats.system.cpu.statFuBusy::FloatAdd + stats.system.cpu1.statFuBusy::FloatAdd + stats.system.cpu.statFuBusy::FloatCmp + stats.system.cpu1.statFuBusy::FloatCmp + stats.system.cpu.statFuBusy::FloatCvt + stats.system.cpu1.statFuBusy::FloatCvt + stats.system.cpu.statFuBusy::FloatMult + stats.system.cpu1.statFuBusy::FloatMult + stats.system.cpu.statFuBusy::FloatDiv + stats.system.cpu1.statFuBusy::FloatDiv + stats.system.cpu.statFuBusy::FloatSqrt + stats.system.cpu1.statFuBusy::FloatSqrt" />
