@@ -2,15 +2,16 @@ import subprocess
 from pathlib import Path
 from .gem5_to_mcpat import run_conversion
 
+
 def gen_dirs(target_dir: Path):
     return {
         "current_dir": Path(__file__).resolve().parent,
         "base_path": Path(target_dir),
-        "stats_file": Path(target_dir)/"stats.h5",
-        "config_file": Path(target_dir)/"config.json",
-        "mcpat_file": Path(target_dir)/"conv.xml"
+        "stats_file": Path(target_dir) / "stats.h5",
+        "config_file": Path(target_dir) / "config.json",
+        "mcpat_file": Path(target_dir) / "conv.xml",
     }
-    
+
 
 def run_mcpat(currentwd: Path, target: Path, mcpat_input: Path):
     mcpat_executable = currentwd.parent / "mcpat"
@@ -24,6 +25,7 @@ def run_mcpat(currentwd: Path, target: Path, mcpat_input: Path):
         print("McPAT run completed successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error running McPAT: {e}")
+
 
 def run(target_dir: str):
     """
@@ -43,11 +45,9 @@ def run(target_dir: str):
     run_conversion(
         stats_file=d["stats_file"],
         config_file=d["config_file"],
-        outfile=d["mcpat_file"]
+        outfile=d["mcpat_file"],
     )
 
     run_mcpat(
-        currentwd=d["current_dir"], 
-        target=d["base_path"],
-        mcpat_input=d["mcpat_file"]
+        currentwd=d["current_dir"], target=d["base_path"], mcpat_input=d["mcpat_file"]
     )
