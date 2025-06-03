@@ -1,5 +1,4 @@
 import subprocess
-import argparse
 from pathlib import Path
 from conversion.gem5_to_mcpat import run_conversion
 
