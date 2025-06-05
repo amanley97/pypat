@@ -4,9 +4,8 @@ from .gem5_to_mcpat import run_conversion
 
 
 def gen_dirs(target_dir: Path):
-    base_path = Path(target_dir)
-    stats_txt = base_path / "stats.txt"
-    stats_h5 = base_path / "stats.h5"
+    stats_txt = target_dir / "stats.txt"
+    stats_h5 = target_dir / "stats.h5"
 
     if stats_txt.exists():
         stats_file = stats_txt
@@ -17,10 +16,10 @@ def gen_dirs(target_dir: Path):
 
     return {
         "current_dir": Path(__file__).resolve().parent,
-        "base_path": base_path,
+        "base_path": target_dir,
         "stats_file": stats_file,
-        "config_file": base_path / "config.json",
-        "mcpat_file": base_path / "conv.xml",
+        "config_file": target_dir / "config.json",
+        "mcpat_file": target_dir / "conv.xml",
     }
 
 
@@ -38,7 +37,7 @@ def run_mcpat(currentwd: Path, target: Path, mcpat_input: Path):
         print(f"Error running McPAT: {e}")
 
 
-def run(target_dir: str):
+def run(target_dir: Path|str):
     """
     Runs the gem5 to McPAT flow.
 
@@ -48,6 +47,9 @@ def run(target_dir: str):
         ├── config.json
         └── stats.txt or stats.h5
     """
+    if isinstance(target_dir, str):
+        target_dir = Path(target_dir)
+
     d = gen_dirs(target_dir)
 
     print(f"Running McPAT conversion and analysis for: {d['base_path']}")
