@@ -4,12 +4,23 @@ from .gem5_to_mcpat import run_conversion
 
 
 def gen_dirs(target_dir: Path):
+    base_path = Path(target_dir)
+    stats_txt = base_path / "stats.txt"
+    stats_h5 = base_path / "stats.h5"
+
+    if stats_txt.exists():
+        stats_file = stats_txt
+    elif stats_h5.exists():
+        stats_file = stats_h5
+    else:
+        raise FileNotFoundError(f"No stats.txt or stats.h5 found in {target_dir}")
+
     return {
         "current_dir": Path(__file__).resolve().parent,
-        "base_path": Path(target_dir),
-        "stats_file": Path(target_dir) / "stats.h5",
-        "config_file": Path(target_dir) / "config.json",
-        "mcpat_file": Path(target_dir) / "conv.xml",
+        "base_path": base_path,
+        "stats_file": stats_file,
+        "config_file": base_path / "config.json",
+        "mcpat_file": base_path / "conv.xml",
     }
 
 
@@ -29,14 +40,13 @@ def run_mcpat(currentwd: Path, target: Path, mcpat_input: Path):
 
 def run(target_dir: str):
     """
-    Runs the gem5 to mcpat flow.
+    Runs the gem5 to McPAT flow.
 
     [gem5_stats, gem5_config] -> mcpat-input.xml -> mcpat-results.txt
 
-    Note the input file must contain the following:
-        target_dir
+    The input directory must contain:
         ├── config.json
-        └── stats.h5
+        └── stats.txt or stats.h5
     """
     d = gen_dirs(target_dir)
 
@@ -46,8 +56,11 @@ def run(target_dir: str):
         stats_file=d["stats_file"],
         config_file=d["config_file"],
         outfile=d["mcpat_file"],
+        template=None,
     )
 
     run_mcpat(
-        currentwd=d["current_dir"], target=d["base_path"], mcpat_input=d["mcpat_file"]
+        currentwd=d["current_dir"],
+        target=d["base_path"],
+        mcpat_input=d["mcpat_file"],
     )

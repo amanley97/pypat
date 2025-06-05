@@ -9,7 +9,7 @@ def main():
     )
     parser.add_argument(
         "target_dir",
-        help="Path to the gem5 output directory. (Must contain stats.h5, config.json)",
+        help="Path to the gem5 output directory. (Must contain stats.txt (or stats.h5), config.json)",
     )
     args = parser.parse_args()
 

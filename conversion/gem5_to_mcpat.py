@@ -53,7 +53,7 @@ def get_conf_value(conf_str, config):
     return curr
 
 
-def read_stats_file(stats_file):
+def read_stats_hdf5(stats_file):
     print(f"Reading GEM5 stats from HDF5: {stats_file}")
     stats = {}
 
@@ -66,10 +66,7 @@ def read_stats_file(stats_file):
             elif isinstance(item, h5py.Dataset):
                 try:
                     val = item[()]
-                    if hasattr(val, "shape") and val.shape != ():  # Array
-                        scalar = float(val.flatten()[-1])  # last value
-                    else:
-                        scalar = float(val)
+                    scalar = float(val.flatten()[-1]) if hasattr(val, "shape") and val.shape != () else float(val)
                     result[path] = str(scalar)
                 except Exception:
                     result[path] = "0.0"
@@ -79,7 +76,37 @@ def read_stats_file(stats_file):
     return stats
 
 
-def dump_mcpat_out(stats, config, template_mcpat, outfile, itr=0):
+def read_stats_txt(stats_file):
+    print(f"Reading GEM5 stats from text: {stats_file}")
+    stats = {}
+    stat_line = re.compile(r'([a-zA-Z0-9_\.:+-]+)\s+([-+]?[0-9]+\.[0-9]+|[-+]?[0-9]+|nan|inf)')
+    ignores = re.compile(r'^---|^$')
+
+    with open(stats_file, "r") as f:
+        for line in f:
+            if not ignores.match(line):
+                match = stat_line.match(line)
+                if match:
+                    stat_kind = match.group(1)
+                    stat_value = match.group(2)
+                    if stat_value == 'nan':
+                        stat_value = '0.0'
+                    stats[stat_kind] = stat_value
+            if "End Simulation Statistics" in line:
+                break
+    return {0: stats}
+
+
+def read_stats_file(stats_file):
+    if stats_file.suffix == ".h5":
+        return read_stats_hdf5(stats_file)
+    elif stats_file.suffix == ".txt":
+        return read_stats_txt(stats_file)
+    else:
+        raise ValueError("Unsupported stats file format. Use .h5 or .txt")
+
+
+def dump_mcpat_out(stats, config, template_mcpat, outfile):
     config_match = re.compile(r"config\.([a-zA-Z0-9_:\.]+)")
     stat_match = re.compile(r"stats\.([a-zA-Z0-9_:\.]+)")
 
@@ -123,13 +150,10 @@ def dump_mcpat_out(stats, config, template_mcpat, outfile, itr=0):
         os.system(f"sed -i 's/{pattern[0]}/{pattern[1]}/g' {outfile}")
 
 
-def run_conversion(stats_file, config_file, outfile, template=None):
+def run_conversion(stats_file, config_file, outfile, template):
     stats = read_stats_file(stats_file)
     config = read_config_file(config_file)
-    if template is not None:
-        template_file = read_mcpat_file(template)
-    else:
-        template_file = load_template()
+    template_file = read_mcpat_file(template) if template else load_template()
     dump_mcpat_out(stats, config, template_file, outfile)
 
 
@@ -137,21 +161,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Convert gem5 stats/config to McPAT XML input"
     )
-    parser.add_argument("stats_file", help="Path to gem5 stats (.h5) file")
-    parser.add_argument("config_file", help="Path to gem5 config (.json) file")
-    parser.add_argument(
-        "-t", "--template", default=None, help="Path to McPAT template (.xml)"
-    )
-    parser.add_argument("-o", "--outfile", default=".", help="Output directory")
-    parser.add_argument(
-        "-q",
-        "--quiet",
-        dest="verbose",
-        action="store_false",
-        help="Suppress verbose output",
-    )
-    args = parser.parse_args()
+    parser.add_argument("stats_file", help="Path to gem5 stats (.h5 or .txt)")
+    parser.add_argument("config_file", help="Path to gem5 config (.json)")
+    parser.add_argument("-t", "--template", default=None, help="Path to McPAT template (.xml)")
+    parser.add_argument("-o", "--outfile", default="mcpat_input.xml", help="Output McPAT XML file")
 
+    args = parser.parse_args()
     run_conversion(
         stats_file=args.stats_file,
         config_file=args.config_file,
