@@ -66,7 +66,11 @@ def read_stats_hdf5(stats_file):
             elif isinstance(item, h5py.Dataset):
                 try:
                     val = item[()]
-                    scalar = float(val.flatten()[-1]) if hasattr(val, "shape") and val.shape != () else float(val)
+                    scalar = (
+                        float(val.flatten()[-1])
+                        if hasattr(val, "shape") and val.shape != ()
+                        else float(val)
+                    )
                     result[path] = str(scalar)
                 except Exception:
                     result[path] = "0.0"
@@ -79,8 +83,10 @@ def read_stats_hdf5(stats_file):
 def read_stats_txt(stats_file):
     print(f"Reading GEM5 stats from text: {stats_file}")
     stats = {}
-    stat_line = re.compile(r'([a-zA-Z0-9_\.:+-]+)\s+([-+]?[0-9]+\.[0-9]+|[-+]?[0-9]+|nan|inf)')
-    ignores = re.compile(r'^---|^$')
+    stat_line = re.compile(
+        r"([a-zA-Z0-9_\.:+-]+)\s+([-+]?[0-9]+\.[0-9]+|[-+]?[0-9]+|nan|inf)"
+    )
+    ignores = re.compile(r"^---|^$")
 
     with open(stats_file, "r") as f:
         for line in f:
@@ -89,8 +95,8 @@ def read_stats_txt(stats_file):
                 if match:
                     stat_kind = match.group(1)
                     stat_value = match.group(2)
-                    if stat_value == 'nan':
-                        stat_value = '0.0'
+                    if stat_value == "nan":
+                        stat_value = "0.0"
                     stats[stat_kind] = stat_value
             if "End Simulation Statistics" in line:
                 break
@@ -163,8 +169,12 @@ if __name__ == "__main__":
     )
     parser.add_argument("stats_file", help="Path to gem5 stats (.h5 or .txt)")
     parser.add_argument("config_file", help="Path to gem5 config (.json)")
-    parser.add_argument("-t", "--template", default=None, help="Path to McPAT template (.xml)")
-    parser.add_argument("-o", "--outfile", default="mcpat_input.xml", help="Output McPAT XML file")
+    parser.add_argument(
+        "-t", "--template", default=None, help="Path to McPAT template (.xml)"
+    )
+    parser.add_argument(
+        "-o", "--outfile", default="mcpat_input.xml", help="Output McPAT XML file"
+    )
 
     args = parser.parse_args()
     run_conversion(
