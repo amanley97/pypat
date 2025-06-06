@@ -41,10 +41,16 @@ def parse_mcpat_metrics_with_units(file_path: Path) -> dict:
 def extract_stats_metrics(stats_file: Path) -> Dict[str, float]:
     desired_keys = {
         "simSeconds", "simTicks", "finalTick", "simFreq", "hostSeconds",
-        "hostTickRate", "hostMemory", "simInsts", "simOps", "hostInstRate", "hostOpRate"
+        "hostTickRate", "hostMemory", "simInsts", "simOps",
+        "hostInstRate", "hostOpRate"
     }
+
+    cpu_keys = {"numCycles", "cpi", "ipc"}
     l2_pattern = re.compile(r'^system\.l2cache\.(\w+)::(\w+)\s+([0-9.eE+-]+)')
+    cpu_pattern = re.compile(r'^system\.cpu\.(\w+)\s+([0-9.eE+-]+)')
+
     results = {}
+
     with open(stats_file, "r") as f:
         for line in f:
             tokens = line.strip().split()
@@ -52,10 +58,17 @@ def extract_stats_metrics(stats_file: Path) -> Dict[str, float]:
                 key = tokens[0]
                 if key in desired_keys:
                     results[f"stats.{key}"] = float(tokens[1])
-            match = l2_pattern.match(line.strip())
-            if match:
-                path = f"stats.l2cache.{match.group(1)}.{match.group(2)}"
-                results[path] = float(match.group(3))
+
+            l2_match = l2_pattern.match(line.strip())
+            if l2_match:
+                path = f"stats.l2cache.{l2_match.group(1)}.{l2_match.group(2)}"
+                results[path] = float(l2_match.group(3))
+
+            cpu_match = cpu_pattern.match(line.strip())
+            if cpu_match and cpu_match.group(1) in cpu_keys:
+                path = f"stats.cpu.{cpu_match.group(1)}"
+                results[path] = float(cpu_match.group(2))
+
     return results
 
 def generate_csv(input_dir: Path, output_csv: Path):
