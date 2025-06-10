@@ -4,21 +4,13 @@ import argparse
 from pathlib import Path
 from typing import Dict
 
-def extract_gem5_config_params(cmdline_file: Path) -> Dict[str, str]:
-    params = {}
-    with open(cmdline_file, 'r') as f:
-        lines = f.readlines()
-    for line in lines:
-        if line.startswith("command line:"):
-            tokens = line.split()
-            for i, token in enumerate(tokens):
-                if token.startswith("--") and "=" in token:
-                    key, val = token.lstrip("--").split("=", 1)
-                    if key != "outdir":
-                        params[f"config.{key}"] = val
-                elif token == "--bin" and i + 1 < len(tokens):
-                    params["config.bin"] = tokens[i + 1]
-    return params
+
+def read_config_csv(config_csv_path: Path) -> Dict[str, str]:
+    with open(config_csv_path, "r") as f:
+        reader = csv.DictReader(f)
+        row = next(reader)
+        return {f"config.{k}": v for k, v in row.items()}
+
 
 def parse_mcpat_metrics_with_units(file_path: Path) -> dict:
     with open(file_path, "r") as f:
@@ -37,6 +29,7 @@ def parse_mcpat_metrics_with_units(file_path: Path) -> dict:
             val = float(match.group(2))
             results[f"mcpat.{current_group}.{key}"] = val
     return results
+
 
 def extract_stats_metrics(stats_file: Path) -> Dict[str, float]:
     desired_keys = {
@@ -71,15 +64,16 @@ def extract_stats_metrics(stats_file: Path) -> Dict[str, float]:
 
     return results
 
+
 def generate_csv(input_dir: Path, output_csv: Path):
-    cmdline_path = input_dir / "cmdline.txt"
+    config_path = input_dir / "config.csv"
     mcpat_path = input_dir / "mcpat_results.txt"
     stats_path = input_dir / "stats.txt"
 
-    if not cmdline_path.exists() or not mcpat_path.exists() or not stats_path.exists():
+    if not config_path.exists() or not mcpat_path.exists() or not stats_path.exists():
         raise FileNotFoundError("One or more required files are missing from input_dir.")
 
-    config = extract_gem5_config_params(cmdline_path)
+    config = read_config_csv(config_path)
     mcpat = parse_mcpat_metrics_with_units(mcpat_path)
     stats = extract_stats_metrics(stats_path)
 
@@ -94,12 +88,14 @@ def generate_csv(input_dir: Path, output_csv: Path):
 
     print(f"✅ CSV row appended to {output_csv}")
 
+
 def main():
     parser = argparse.ArgumentParser(description="Extract data and write to CSV")
-    parser.add_argument("input_dir", type=Path, help="Input directory with cmdline.txt, mcpat_results.txt, and stats.txt")
+    parser.add_argument("input_dir", type=Path, help="Input directory with config.csv, mcpat_results.txt, and stats.txt")
     parser.add_argument("output_csv", type=Path, help="Path to output CSV file")
     args = parser.parse_args()
     generate_csv(args.input_dir, args.output_csv)
+
 
 if __name__ == "__main__":
     main()
