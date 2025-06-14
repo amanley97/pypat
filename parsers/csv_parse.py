@@ -86,7 +86,7 @@ def generate_csv(input_dir: Path, output_csv: Path):
             writer.writeheader()
         writer.writerow(all_data)
 
-    print(f"✅ CSV row appended to {output_csv}")
+    print(f"✅ {input_dir} parsed, CSV row appended to {output_csv}")
 
 
 def main():
